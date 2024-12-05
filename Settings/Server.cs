@@ -20,6 +20,9 @@ namespace Settings
                 _canAlignMode = value;
                 LogSetting(MethodBase.GetCurrentMethod().Name, value.ToString());
                 OnStaticPropertyChanged();
+
+
+
             }
         }
 
