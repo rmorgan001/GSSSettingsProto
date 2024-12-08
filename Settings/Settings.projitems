@@ -13,6 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ProfileItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Server.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SettingItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)SettingFiles\" />

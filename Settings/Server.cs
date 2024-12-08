@@ -8,7 +8,7 @@ namespace Settings
     internal static class Server
     {
         private const string Classname = nameof(Server);
-        internal static event PropertyChangedEventHandler StaticPropertyChanged = null!;
+        internal static event PropertyChangedEventHandler? StaticPropertyChanged;
 
         #region Defaults
 
@@ -96,7 +96,19 @@ namespace Settings
                 Name = "Setting4", Value = _setting4.ToString(CultureInfo.InvariantCulture), TypeCode = _setting4.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
             });
         }
-        
+
+        /// <summary>
+        /// Update local properties and trigger property changes
+        /// </summary>
+        internal static void UpdateProperties()
+        {
+
+            Setting1 = Utils.ConvertString<bool>(Profile.GetSettingItem("Setting1").Value);
+            Setting2 = Utils.ConvertString<int>(Profile.GetSettingItem("Setting2").Value);
+            Setting3 = Utils.ConvertString<string>(Profile.GetSettingItem("Setting3").Value);
+            Setting4 = Utils.ConvertString<double>(Profile.GetSettingItem("Setting4").Value);
+        }
+
         /// <summary>
         /// output to session log
         /// </summary>
@@ -114,10 +126,9 @@ namespace Settings
         /// property event notification
         /// </summary>
         /// <param name="propertyName"></param>
-        private static void OnStaticPropertyChanged([CallerMemberName] string? propertyName = null)
+        private static void OnStaticPropertyChanged([CallerMemberName] string propertyName = "blank")
         {
-            if (string.IsNullOrEmpty(propertyName)){ return; }
-            StaticPropertyChanged.Invoke(null, new PropertyChangedEventArgs(propertyName));
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
         }
 
         #endregion

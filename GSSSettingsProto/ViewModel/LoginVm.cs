@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Globalization;
+using System.Windows;
 using System.Windows.Input;
 using GSSSettingsProto.Commands;
 using GSSSettingsProto.Models;
@@ -10,6 +11,11 @@ namespace GSSSettingsProto.ViewModel
         private readonly User _user = new();
         
         public ICommand LoginCommand {get; } = new RelayCommand(LoggedIn);
+
+        public LoginVm()
+        {
+            Password = Settings.Server.Setting3;
+        }
 
         public string? UserName
         {
@@ -33,8 +39,7 @@ namespace GSSSettingsProto.ViewModel
 
         private static void LoggedIn(object parameter)
         {
-            //Settings.Profile.l;
-
+            
             MessageBox.Show($"Logged in successful as {parameter}");
         }
     }

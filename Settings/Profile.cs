@@ -92,6 +92,14 @@ namespace Settings
             return ProfilesList;
         }
 
+        internal static SettingItem GetSettingItem(string name)
+        {
+            if (SettingsList == null) throw new Exception("SettingsList not found");
+            var index = SettingsList.FindIndex(item => string.Equals(item.Name, name, StringComparison.CurrentCultureIgnoreCase));
+            if (index != -1){ return SettingsList[index]; }
+            throw new Exception("Setting not found");
+        }
+
         /// <summary>
         /// Get all Settings
         /// </summary>
@@ -144,6 +152,7 @@ namespace Settings
                     SettingsList.Add(setting);
                 }
             }
+            UpdateAllClassProperties();
         }
 
         /// <summary>
@@ -196,6 +205,11 @@ namespace Settings
             }
         }
 
+        /// <summary>
+        /// Save Profiles and Settings to file as a task
+        /// </summary>
+        /// <param name="profile"></param>
+        /// <returns></returns>
         internal static Task SaveProfileAsync(ProfileItem profile)
         {
             SaveProfilesFile();
@@ -260,12 +274,11 @@ namespace Settings
         }
 
         /// <summary>
-        /// Update a ProfileItem in the ProfilesList by name
+        /// Update class properties
         /// </summary>
-        /// <param name="profile">ProfileItem</param>
-        private static void UpdateSetting(ProfileItem profile)
+        private static void UpdateAllClassProperties()
         {
-            //update _profilesList
+            Server.UpdateProperties();
         }
 
 
