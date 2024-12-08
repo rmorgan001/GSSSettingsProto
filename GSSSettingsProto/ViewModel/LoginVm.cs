@@ -33,7 +33,7 @@ namespace GSSSettingsProto.ViewModel
 
         private static void LoggedIn(object parameter)
         {
-            var s = Settings.Profile.SettingsList;
+            //Settings.Profile.l;
 
             MessageBox.Show($"Logged in successful as {parameter}");
         }

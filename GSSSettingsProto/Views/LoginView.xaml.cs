@@ -8,8 +8,8 @@ namespace GSSSettingsProto.Views
     {
         public LoginView()
         {
+            Settings.Profile.LoadDefaults();
             InitializeComponent();
-            Settings.Profile.Load();
         }
     }
 }

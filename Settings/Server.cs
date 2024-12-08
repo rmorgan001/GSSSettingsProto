@@ -102,7 +102,7 @@ namespace Settings
         /// </summary>
         /// <param name="method"></param>
         /// <param name="value"></param>
-        private static void LogSetting(string?  method, string value)
+        private static void LogSetting(string? method, string value)
         {
             // send to monitor for logging
             //var monitorItem = new MonitorEntry

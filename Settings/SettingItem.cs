@@ -12,4 +12,5 @@ namespace Settings
         public bool IsDepreciated { get; set; } = false;         
         public string VersionDepreciated { get; set; } = string.Empty;
     }
+
 }

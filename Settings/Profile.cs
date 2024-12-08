@@ -102,40 +102,36 @@ namespace Settings
             return SettingsList;
         }
         
-        internal static void Load()
-        {
-            LoadDefaults();
-            LoadProfile(DefaultProfile);
-
-            SaveSettingsFile(DefaultProfile);
-        }
-        
-        /// <summary>
+       /// <summary>
         /// Load default settings from the other classes
         /// </summary>
-        private static void LoadDefaults()
+        internal static void LoadDefaults()
         {
+            // Base settings
             SettingsList = new List<SettingItem>();
-
-            Server.LoadDefaults();          //  load default settings from each class
-
+            Server.LoadDefaults();                      //  load default settings from each class
             var sortedList = SettingsList.OrderBy(o => o.Class).ThenBy(o => o.Name).ToList();
             SettingsList = sortedList;
+
+            // Profiles
+            LoadProfilesFile();
+            LoadProfile(DefaultProfile);                //  Overwrite defaults with settings file
+            SaveProfileAsync(DefaultProfile);
         }
 
         /// <summary>
-        /// Load a specific profile
+        /// Load a specific profile and its settings file
         /// </summary>
         /// <param name="profile"></param>
         internal static void LoadProfile(ProfileItem profile)
         {
-            var newSettings = LoadSettingsFile(profile);
+            var newSettings = GetSettingsFile(profile);
             if (newSettings == null){ return; }
             if (ProfilesList == null || !ProfilesList.Contains(profile)) return;
 
             _activeProfile = profile;
 
-            foreach (var setting in newSettings)
+            foreach (var setting in newSettings)  // replace the setting item in SettingsList or add it
             {
                 if (SettingsList == null) continue;
                 var index = SettingsList.FindIndex(item => string.Equals(item.Name, setting.Name, StringComparison.CurrentCultureIgnoreCase));
@@ -143,51 +139,43 @@ namespace Settings
                 {
                     SettingsList[index] = setting;
                 }
+                else
+                {
+                    SettingsList.Add(setting);
+                }
             }
         }
 
         /// <summary>
-        /// Load the setting file and return a list
+        /// Get the setting file and return a list
         /// </summary>
         /// <param name="profile"></param>
         /// <returns>List of SettingItems</returns>
-        private static List<SettingItem>? LoadSettingsFile(ProfileItem profile)
+        private static List<SettingItem>? GetSettingsFile(ProfileItem profile)
         {
-           var path = Path.Combine(LocalSettingsPath, profile.SettingsName + JsonExt);
-           if (!File.Exists(path)) return null;
+            var filename = Path.Combine(LocalSettingsPath, profile.SettingsName + JsonExt);
+            if (!File.Exists(filename)) return null;
 
-           //var sList = new List<SettingItem>();
-           var lines = new List<string?>();
-
-           using (var reader = new StreamReader(path))
-           {
-               while(!reader.EndOfStream)
-               {
-                   lines.Add(reader.ReadLine());
-                   //var line = reader.ReadLine();
-                   //if (line == null) continue;
-                   //var pItem = JsonSerializer.Deserialize<SettingItem>(line);
-                   //if (pItem != null) sList.Add(pItem);
-
-               }
-           }
-
-           //var lines = File.ReadLines(path);
-           //foreach (var line in lines)
-           //{
-           //    var pItem = JsonSerializer.Deserialize<SettingItem>(line);
-           //    if (pItem != null) sList.Add(pItem);
-           //}
-
-           //var sortedList = sList.OrderBy(o => o.Class).ThenBy(o => o.Name).ToList();
-          //SettingsList = sortedList;
-           return SettingsList;
+            var sList = new List<SettingItem>();
+            var fileStream  = new FileStream(filename,FileMode.Open);
+            using (var reader = new StreamReader(fileStream))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    if (line == null) continue;
+                    var pItem = JsonSerializer.Deserialize<SettingItem>(line);
+                    if (pItem != null) sList.Add(pItem);
+                }
+            }
+            var sortedList = sList.OrderBy(o => o.Class).ThenBy(o => o.Name).ToList();
+            return sortedList;
         }
 
         /// <summary>
         /// Load Profiles.json file.
         /// </summary>
-        private static void LoadProfiles(ProfileItem? profile = null)
+        private static void LoadProfilesFile()
         {
             //load profiles into ProfilesList
             var path = Path.Combine(LocalSettingsPath, ProfileFileName, JsonExt);
@@ -206,27 +194,13 @@ namespace Settings
             {
                 SaveProfilesFile();     // save what's in ProfilesList
             }
+        }
 
-
-
-
-            //var p = Directory.Exists(LocalSettingsPath);
-            //if (p)
-            //{
-            //    return;
-            //}
-
-
-            //using var r = new StreamReader("file.json");
-            //var json = r.ReadToEnd();
-            //ProfilesList = JsonSerializer.Deserialize<List<ProfileItem>>(json);
-
-            DeleteSettingsFile(DefaultProfile);
-
-            SaveSettingsFile(DefaultProfile);
-
-            //SaveProfilesFile();
-
+        internal static Task SaveProfileAsync(ProfileItem profile)
+        {
+            SaveProfilesFile();
+            SaveSettingsFile(profile);
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -236,18 +210,16 @@ namespace Settings
         {
             if (ProfilesList == null) return;
 
-            var profile = string.Empty;
-            foreach (var item in ProfilesList)
-            {
-                var a = JsonSerializer.Serialize(item);
-                profile += a; // one profile per line
-            }
-            
             var filename = Path.Combine(LocalSettingsPath, ProfileFileName + JsonExt);
             var fileStream  = new FileStream(filename,FileMode.Create);
             using (var writer = new StreamWriter(fileStream))
             {
-                writer.Write(profile);
+                foreach (var profile in ProfilesList)
+                {
+                    var line = JsonSerializer.Serialize(profile);
+                    writer.WriteLine(line);
+                }
+                writer.Flush();
             }
         }
 
@@ -259,18 +231,16 @@ namespace Settings
         {
             if (SettingsList == null) return;
 
-            var settings = string.Empty;
-            foreach (var setting in SettingsList)
-            {
-                var a = JsonSerializer.Serialize(setting);
-                settings += a + Environment.NewLine; // one setting per line
-            }
-            
             var filename = Path.Combine(LocalSettingsPath, profile.SettingsName + JsonExt);
-            var fileStream  = new FileStream(filename,FileMode.Create);
+            var fileStream = new FileStream(filename, FileMode.Create);
             using (var writer = new StreamWriter(fileStream))
             {
-                writer.Write(settings);
+                foreach (var setting in SettingsList)
+                {
+                    var line = JsonSerializer.Serialize(setting);
+                    writer.WriteLine(line);
+                }
+                writer.Flush();
             }
         }
 
@@ -297,5 +267,8 @@ namespace Settings
         {
             //update _profilesList
         }
+
+
+
     }
 }
