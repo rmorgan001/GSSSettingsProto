@@ -14,8 +14,9 @@ namespace Settings
 
         private static bool _setting1 = true;
         private static int _setting2 = 1;
-        private static string _setting3 = "Test1";
+        private static string _setting3 = "Username";
         private static double _setting4 = 0.1;
+        private static string _setting5 = "Password";
 
 
         #endregion
@@ -28,6 +29,7 @@ namespace Settings
             set
             {
                 if (_setting1 == value) return;
+                Profile.SetSettingValue("Setting1", value.ToString(CultureInfo.InvariantCulture));
                 _setting1 = value;
                 LogSetting(MethodBase.GetCurrentMethod()?.Name, $"{value}");
                 OnStaticPropertyChanged();
@@ -40,6 +42,7 @@ namespace Settings
             set
             {
                 if (_setting2 == value) return;
+                Profile.SetSettingValue("Setting2", value.ToString(CultureInfo.InvariantCulture));
                 _setting2 = value;
                 LogSetting(MethodBase.GetCurrentMethod()?.Name, $"{value}");
                 OnStaticPropertyChanged();
@@ -52,6 +55,7 @@ namespace Settings
             set
             {
                 if (_setting3 == value) return;
+                Profile.SetSettingValue("Setting3", value.ToString(CultureInfo.InvariantCulture));
                 _setting3 = value;
                 LogSetting(MethodBase.GetCurrentMethod()?.Name, $"{value}");
                 OnStaticPropertyChanged();
@@ -64,7 +68,21 @@ namespace Settings
             set
             {
                 if (Math.Abs(_setting4 - value) < 0.1) return;
+                Profile.SetSettingValue("Setting4", value.ToString(CultureInfo.InvariantCulture));
                 _setting4 = value;
+                LogSetting(MethodBase.GetCurrentMethod()?.Name, $"{value}");
+                OnStaticPropertyChanged();
+            }
+        }
+
+        public static string Setting5
+        {
+            get => _setting5;
+            set
+            {
+                if (_setting5 == value) return;
+                Profile.SetSettingValue("Setting5", value.ToString(CultureInfo.InvariantCulture));
+                _setting5 = value;
                 LogSetting(MethodBase.GetCurrentMethod()?.Name, $"{value}");
                 OnStaticPropertyChanged();
             }
@@ -81,19 +99,23 @@ namespace Settings
         {
             Profile.AddSetting(new SettingItem
             {
-                Name = "Setting1", Value = _setting1.ToString(), TypeCode = _setting1.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
+                Name = "Setting1", Value = _setting1.ToString(CultureInfo.InvariantCulture), TypeCode = _setting1.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
             });
             Profile.AddSetting(new SettingItem
             {
-                Name = "Setting2", Value = _setting2.ToString(), TypeCode = _setting2.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
+                Name = "Setting2", Value = _setting2.ToString(CultureInfo.InvariantCulture), TypeCode = _setting2.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
             });
             Profile.AddSetting(new SettingItem
             {
-                Name = "Setting3", Value = _setting3, TypeCode = _setting3.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
+                Name = "Setting3", Value = _setting3.ToString(CultureInfo.InvariantCulture), TypeCode = _setting3.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
             });
             Profile.AddSetting(new SettingItem
             {
                 Name = "Setting4", Value = _setting4.ToString(CultureInfo.InvariantCulture), TypeCode = _setting4.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
+            });
+            Profile.AddSetting(new SettingItem
+            {
+                Name = "Setting5", Value = _setting4.ToString(CultureInfo.InvariantCulture), TypeCode = _setting5.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
             });
         }
 
@@ -107,6 +129,7 @@ namespace Settings
             Setting2 = Utils.ConvertString<int>(Profile.GetSettingItem("Setting2").Value);
             Setting3 = Utils.ConvertString<string>(Profile.GetSettingItem("Setting3").Value);
             Setting4 = Utils.ConvertString<double>(Profile.GetSettingItem("Setting4").Value);
+            Setting5 = Utils.ConvertString<string>(Profile.GetSettingItem("Setting5").Value);
         }
 
         /// <summary>

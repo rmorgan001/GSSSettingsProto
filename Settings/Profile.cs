@@ -92,12 +92,33 @@ namespace Settings
             return ProfilesList;
         }
 
+        /// <summary>
+        /// Retrieves a SettingItem from SettingsList
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         internal static SettingItem GetSettingItem(string name)
         {
             if (SettingsList == null) throw new Exception("SettingsList not found");
             var index = SettingsList.FindIndex(item => string.Equals(item.Name, name, StringComparison.CurrentCultureIgnoreCase));
             if (index != -1){ return SettingsList[index]; }
             throw new Exception("Setting not found");
+        }
+        
+        /// <summary>
+        /// Set the value of a SettingItem in SettingsList
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        internal static void SetSettingValue(string name, string value)
+        {
+            if (SettingsList == null) throw new Exception("SettingsList not found");
+            var index = SettingsList.FindIndex(item => string.Equals(item.Name, name, StringComparison.CurrentCultureIgnoreCase));
+            if (index != -1){ SettingsList[index].Value = value ;}
+            SaveProfileAsync(_activeProfile);
         }
 
         /// <summary>
@@ -208,12 +229,14 @@ namespace Settings
         /// <summary>
         /// Save Profiles and Settings to file as a task
         /// </summary>
-        /// <param name="profile"></param>
+        /// <param name="profile">ProfileItem</param>
+        /// <param name="profiles">Save Profiles File</param>
+        /// <param name="settings">Save Settings File</param>
         /// <returns></returns>
-        internal static Task SaveProfileAsync(ProfileItem profile)
+        internal static Task SaveProfileAsync(ProfileItem profile,bool profiles = true, bool settings = true)
         {
-            SaveProfilesFile();
-            SaveSettingsFile(profile);
+            if(profiles){ SaveProfilesFile(); }
+            if(settings){ SaveSettingsFile(profile);}
             return Task.CompletedTask;
         }
 

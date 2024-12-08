@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+﻿
 using System.Windows;
 using System.Windows.Input;
 using GSSSettingsProto.Commands;
@@ -12,10 +12,6 @@ namespace GSSSettingsProto.ViewModel
         
         public ICommand LoginCommand {get; } = new RelayCommand(LoggedIn);
 
-        public LoginVm()
-        {
-            Password = Settings.Server.Setting3;
-        }
 
         public string? UserName
         {
