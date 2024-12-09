@@ -115,7 +115,7 @@ namespace Settings
             });
             Profile.AddSetting(new SettingItem
             {
-                Name = "Setting5", Value = _setting4.ToString(CultureInfo.InvariantCulture), TypeCode = _setting5.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
+                Name = "Setting5", Value = _setting5.ToString(CultureInfo.InvariantCulture), TypeCode = _setting5.GetTypeCode().ToString(), Class = Classname, VersionAdded = "1.0"
             });
         }
 

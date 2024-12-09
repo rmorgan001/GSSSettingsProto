@@ -30,35 +30,49 @@ namespace Settings
         /// Add a ProfileItem to ProfilesList
         /// </summary>
         /// <param name="profile">ProfileItem</param>
-        internal static void AddProfile(ProfileItem profile)
+        /// <param name="replace">replace if found</param>
+        internal static void AddProfile(ProfileItem profile, bool replace = true)
         {
-            if (string.Equals(profile.Name, DefaultProfile.Name, StringComparison.CurrentCultureIgnoreCase)){ return; }     // can't add Default profile
-            var found = ProfilesList != null && ProfilesList.Any(item => item.Name == profile.Name);
-            if (!found){ProfilesList?.Add(profile);}
+            //if (string.Equals(profile.Name, DefaultProfile.Name, StringComparison.CurrentCultureIgnoreCase)){ return; }     // can't add Default profile
+            //var found = ProfilesList != null && ProfilesList.Any(item => item.Name == profile.Name);
+            //if (!found){ProfilesList?.Add(profile);}
+
+            if (string.Equals(profile.Name, DefaultProfile.Name, StringComparison.CurrentCultureIgnoreCase)){ return; }
+            ProfilesList ??= [];
+            var index = ProfilesList.FindIndex(item => string.Equals(item.Name, profile.Name, StringComparison.CurrentCultureIgnoreCase));
+            if (index != -1) { ProfilesList[index] = profile; }
+            else { if (replace){ ProfilesList.Add(profile); } }
+            SortProfilesList();
         }
 
         /// <summary>
-        /// Add a SettingItem to the SettingsList
+        /// Add or replace a SettingItem to the SettingsList
         /// </summary>
         /// <param name="setting">SettingItem</param>
-        internal static void AddSetting(SettingItem setting)
+        /// <param name="replace">Replace SettingItem in SettingsList</param>
+        internal static void AddSetting(SettingItem setting, bool replace = true)
         {
-            var found = SettingsList != null && SettingsList.Any(item => string.Equals(item.Name, setting.Name, StringComparison.CurrentCultureIgnoreCase));
-            if (!found){SettingsList?.Add(setting);}
+            SettingsList ??= [];
+            var index = SettingsList.FindIndex(item => string.Equals(item.Name, setting.Name, StringComparison.CurrentCultureIgnoreCase));
+            if (index != -1) { SettingsList[index] = setting; }
+            else { if (replace){ SettingsList.Add(setting); } }
+            SortSettingsList();
         }
 
         /// <summary>
         /// Delete a Profile and its corresponding settings file
         /// </summary>
         /// <param name="profile">ProfileItem</param>
-        /// <param name="removeSettingsFile">delete corresponding settings file</param>
-        internal static void DeleteProfile(ProfileItem profile, bool removeSettingsFile)
+        /// <param name="remove">delete corresponding settings file</param>
+        internal static void DeleteProfile(ProfileItem profile, bool remove)
         {
             if (string.Equals(profile.Name, DefaultProfile.Name, StringComparison.CurrentCultureIgnoreCase)){ return; }     // can't delete default profile
-            if ( profile == _activeProfile) { return; }                                                                           // can't delete active profile
-            var found = ProfilesList != null && ProfilesList.Any(item => string.Equals(item.Name, profile.Name, StringComparison.CurrentCultureIgnoreCase));
-            if (!found){ProfilesList?.Remove(profile);}
-            if (removeSettingsFile) { DeleteSettingsFile(profile); }
+            if ( profile == _activeProfile) { return; }                                                                         // can't delete active profile
+            ProfilesList ??= [];
+            var index = ProfilesList.FindIndex(item => string.Equals(item.Name, item.Name, StringComparison.CurrentCultureIgnoreCase));
+            if (index != -1) {ProfilesList.Remove(profile);}
+            if (remove) { DeleteSettingsFile(profile); }
+            SortProfilesList();
         }
 
         /// <summary>
@@ -78,8 +92,9 @@ namespace Settings
         /// <returns>a specific ProfileItem from ProfilesList</returns>
         internal static ProfileItem? GetProfile(string profileName)
         {
-            var a = ProfilesList?.FirstOrDefault(item =>  string.Equals(item.Name, profileName, StringComparison.CurrentCultureIgnoreCase)); // find in ProfilesList
-            return a;
+            ProfilesList ??= [];
+            var index = ProfilesList.FindIndex(item => string.Equals(item.Name, profileName, StringComparison.CurrentCultureIgnoreCase));
+            return index != -1 ? null : ProfilesList[index];
         }
 
         /// <summary>
@@ -139,8 +154,7 @@ namespace Settings
             // Base settings
             SettingsList = new List<SettingItem>();
             Server.LoadDefaults();                      //  load default settings from each class
-            var sortedList = SettingsList.OrderBy(o => o.Class).ThenBy(o => o.Name).ToList();
-            SettingsList = sortedList;
+            SortSettingsList();
 
             // Profiles
             LoadProfilesFile();
@@ -157,8 +171,8 @@ namespace Settings
             var newSettings = GetSettingsFile(profile);
             if (newSettings == null){ return; }
             if (ProfilesList == null || !ProfilesList.Contains(profile)) return;
-
             _activeProfile = profile;
+            SortProfilesList();
 
             foreach (var setting in newSettings)  // replace the setting item in SettingsList or add it
             {
@@ -173,6 +187,7 @@ namespace Settings
                     SettingsList.Add(setting);
                 }
             }
+            SortSettingsList();
             UpdateAllClassProperties();
         }
 
@@ -235,8 +250,17 @@ namespace Settings
         /// <returns></returns>
         internal static Task SaveProfileAsync(ProfileItem profile,bool profiles = true, bool settings = true)
         {
-            if(profiles){ SaveProfilesFile(); }
-            if(settings){ SaveSettingsFile(profile);}
+            if (profiles)
+            {
+                SortProfilesList();
+                SaveProfilesFile();
+            }
+
+            if (settings)
+            {
+                SortSettingsList();
+                SaveSettingsFile(profile);
+            }
             return Task.CompletedTask;
         }
 
@@ -282,21 +306,6 @@ namespace Settings
         }
 
         /// <summary>
-        /// Replace a ProfileItem in ProfilesList by name
-        /// </summary>
-        /// <param name="profile">ProfileItem</param>
-        private static void ReplaceProfile(ProfileItem profile)
-        {
-            if (string.Equals(profile.Name, DefaultProfile.Name, StringComparison.CurrentCultureIgnoreCase)){ return; }     // can't replace default profile
-            var found = ProfilesList != null && ProfilesList.Any(item => string.Equals(item.Name, profile.Name, StringComparison.CurrentCultureIgnoreCase));
-            if (found) return;
-
-            DeleteProfile(profile, false);
-            AddProfile(profile);
-            // what to do with settings name and file?
-        }
-
-        /// <summary>
         /// Update class properties
         /// </summary>
         private static void UpdateAllClassProperties()
@@ -304,7 +313,24 @@ namespace Settings
             Server.UpdateProperties();
         }
 
+        /// <summary>
+        /// Sort SettingsList by class and then name
+        /// </summary>
+        private static void SortSettingsList()
+        {
+            if (SettingsList == null){ return; }
+            var sortedList = SettingsList.OrderBy(o => o.Class).ThenBy(o => o.Name).ToList();
+            SettingsList = sortedList;
+        }
 
-
+        /// <summary>
+        /// Sort ProfilesList by name
+        /// </summary>
+        private static void SortProfilesList()
+        {
+            if (ProfilesList == null){ return; }
+            var sortedList = ProfilesList.OrderBy(o => o.Name).ToList();
+            ProfilesList = sortedList;
+        }
     }
 }
