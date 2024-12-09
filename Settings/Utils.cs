@@ -1,10 +1,8 @@
 ﻿using System.ComponentModel;
 
 namespace Settings
-{
-    internal class Utils
+{ internal class Utils
     {
-
         public static T ConvertString<T>(string value)
         {
             var targetType = typeof(T);

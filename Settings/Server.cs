@@ -7,17 +7,15 @@ namespace Settings
 {
     internal static class Server
     {
+        #region Const, Events, Backers
+
         private const string Classname = nameof(Server);
         internal static event PropertyChangedEventHandler? StaticPropertyChanged;
-
-        #region Defaults
-
         private static bool _setting1 = true;
         private static int _setting2 = 1;
         private static string _setting3 = "Username";
         private static double _setting4 = 0.1;
         private static string _setting5 = "Password";
-
 
         #endregion
 
@@ -90,10 +88,10 @@ namespace Settings
 
         #endregion
 
-        #region Methods
+        #region Internal Methods
 
         /// <summary>
-        /// Load properties and their default values into the Profile SettingsList.
+        /// Add or replace properties and their default values in the Profile SettingsList.  Used for initial load and resets 
         /// </summary>
         internal static void LoadDefaults()
         {
@@ -120,17 +118,20 @@ namespace Settings
         }
 
         /// <summary>
-        /// Update local properties and trigger property changes
+        /// Update local properties from the Profile.SettingsList and trigger property changes
         /// </summary>
         internal static void UpdateProperties()
         {
-
             Setting1 = Utils.ConvertString<bool>(Profile.GetSettingItem("Setting1").Value);
             Setting2 = Utils.ConvertString<int>(Profile.GetSettingItem("Setting2").Value);
             Setting3 = Utils.ConvertString<string>(Profile.GetSettingItem("Setting3").Value);
             Setting4 = Utils.ConvertString<double>(Profile.GetSettingItem("Setting4").Value);
             Setting5 = Utils.ConvertString<string>(Profile.GetSettingItem("Setting5").Value);
         }
+
+        #endregion
+
+        #region Private Methods
 
         /// <summary>
         /// output to session log
@@ -155,6 +156,5 @@ namespace Settings
         }
 
         #endregion
-
     }
 }

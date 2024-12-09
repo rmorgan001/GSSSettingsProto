@@ -6,8 +6,10 @@ namespace Settings
 {
     internal static class Profile
     {
+        #region Const, Events, Backers
+
         private const string JsonExt = ".json";
-        private const string FilesFolder = "GS_Server\\Settings";
+        private const string SettingsPath = "GS_Server\\Settings";
         private const string Default = "Default";
         private const string ProfileFileName = "Profiles";
         internal static List<ProfileItem>? ProfilesList = [];
@@ -16,27 +18,27 @@ namespace Settings
         private static readonly ProfileItem DefaultProfile;
         private static ProfileItem _activeProfile;
 
+        #endregion
+
         static Profile()
         {
             DefaultProfile = new ProfileItem { Name = Default, Description = Default, SettingsName = Default, Startup = true }; // default profile
             ProfilesList?.Add(DefaultProfile);
             _activeProfile = DefaultProfile;
-            LocalSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData,Environment.SpecialFolderOption.Create), FilesFolder);
+            LocalSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData,Environment.SpecialFolderOption.Create), SettingsPath);
             if (!Directory.Exists(LocalSettingsPath)){ Directory.CreateDirectory(LocalSettingsPath); }
 
         }
 
-        /// <summary>
+        #region Internal Methods
+
+       /// <summary>
         /// Add a ProfileItem to ProfilesList
         /// </summary>
         /// <param name="profile">ProfileItem</param>
         /// <param name="replace">replace if found</param>
         internal static void AddProfile(ProfileItem profile, bool replace = true)
         {
-            //if (string.Equals(profile.Name, DefaultProfile.Name, StringComparison.CurrentCultureIgnoreCase)){ return; }     // can't add Default profile
-            //var found = ProfilesList != null && ProfilesList.Any(item => item.Name == profile.Name);
-            //if (!found){ProfilesList?.Add(profile);}
-
             if (string.Equals(profile.Name, DefaultProfile.Name, StringComparison.CurrentCultureIgnoreCase)){ return; }
             ProfilesList ??= [];
             var index = ProfilesList.FindIndex(item => string.Equals(item.Name, profile.Name, StringComparison.CurrentCultureIgnoreCase));
@@ -76,7 +78,7 @@ namespace Settings
         }
 
         /// <summary>
-        /// Delete Settings file
+        /// Delete a Settings file
         /// </summary>
         /// <param name="profile">ProfileItem</param>
         internal static void DeleteSettingsFile(ProfileItem profile)
@@ -86,14 +88,14 @@ namespace Settings
         }
 
         /// <summary>
-        /// Find a ProfileItem in the ProfilesList
+        /// retrieve a ProfileItem in the ProfilesList by name
         /// </summary>
-        /// <param name="profileName">Name of Profile</param>
-        /// <returns>a specific ProfileItem from ProfilesList</returns>
-        internal static ProfileItem? GetProfile(string profileName)
+        /// <param name="name">Name of a Profile</param>
+        /// <returns>a specific ProfileItem from ProfilesList or null if not found</returns>
+        internal static ProfileItem? GetProfile(string name)
         {
             ProfilesList ??= [];
-            var index = ProfilesList.FindIndex(item => string.Equals(item.Name, profileName, StringComparison.CurrentCultureIgnoreCase));
+            var index = ProfilesList.FindIndex(item => string.Equals(item.Name, name, StringComparison.CurrentCultureIgnoreCase));
             return index != -1 ? null : ProfilesList[index];
         }
 
@@ -103,12 +105,11 @@ namespace Settings
         /// <returns>returns ProfilesList</returns>
         internal static List<ProfileItem>? GetProfiles()
         {
-            // return ProfilesList
-            return ProfilesList;
+            return ProfilesList; // return ProfilesList
         }
 
         /// <summary>
-        /// Retrieves a SettingItem from SettingsList
+        /// Retrieve a SettingItem from SettingsList by name
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -124,8 +125,8 @@ namespace Settings
         /// <summary>
         /// Set the value of a SettingItem in SettingsList
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
+        /// <param name="name">Setting name</param>
+        /// <param name="value">Setting Value</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         internal static void SetSettingValue(string name, string value)
@@ -137,13 +138,12 @@ namespace Settings
         }
 
         /// <summary>
-        /// Get all Settings
+        /// Get all current Settings
         /// </summary>
         /// <returns>returns ProfilesList</returns>
         internal static List<SettingItem>? GetSettings()
         {
-            // return ProfilesList
-            return SettingsList;
+            return SettingsList; // return ProfilesList
         }
         
        /// <summary>
@@ -192,7 +192,7 @@ namespace Settings
         }
 
         /// <summary>
-        /// Get the setting file and return a list
+        /// Get a settings file and return as a sorted list
         /// </summary>
         /// <param name="profile"></param>
         /// <returns>List of SettingItems</returns>
@@ -264,18 +264,22 @@ namespace Settings
             return Task.CompletedTask;
         }
 
+        #endregion
+
+        #region Private Methods
+
         /// <summary>
         /// Save Profiles to file Profiles.json
         /// </summary>
         private static void SaveProfilesFile()
         {
             if (ProfilesList == null) return;
-
+            var list = ProfilesList;
             var filename = Path.Combine(LocalSettingsPath, ProfileFileName + JsonExt);
             var fileStream  = new FileStream(filename,FileMode.Create);
             using (var writer = new StreamWriter(fileStream))
             {
-                foreach (var profile in ProfilesList)
+                foreach (var profile in list)
                 {
                     var line = JsonSerializer.Serialize(profile);
                     writer.WriteLine(line);
@@ -291,12 +295,12 @@ namespace Settings
         private static void SaveSettingsFile(ProfileItem profile)
         {
             if (SettingsList == null) return;
-
+            var list = SettingsList;
             var filename = Path.Combine(LocalSettingsPath, profile.SettingsName + JsonExt);
             var fileStream = new FileStream(filename, FileMode.Create);
             using (var writer = new StreamWriter(fileStream))
             {
-                foreach (var setting in SettingsList)
+                foreach (var setting in list)
                 {
                     var line = JsonSerializer.Serialize(setting);
                     writer.WriteLine(line);
@@ -332,5 +336,7 @@ namespace Settings
             var sortedList = ProfilesList.OrderBy(o => o.Name).ToList();
             ProfilesList = sortedList;
         }
+
+        #endregion
     }
 }
